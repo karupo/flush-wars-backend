@@ -19,7 +19,7 @@ var openDB = func(dsn string) (*gorm.DB, error) {
 }
 
 // Init - Connect to DB
-func Init(loadEnv bool) error {
+var Init = func(loadEnv bool) error {
 	if loadEnv {
 		if err := godotenv.Load(); err != nil {
 			return fmt.Errorf("error loading .env file: %w", err)
