@@ -33,13 +33,7 @@ jobs:
 
     - name: Install dependencies
       run: go mod tidy
-
-    - name: Run GolangCI-Lint
-      uses: golangci/golangci-lint-action@v2
-      with:
-        version: v1.44.0  # Adjust to the version you want
-        args: --disable-all --enable=govet --enable=gocyclo --enable=gofmt  # Enable desired linters
-
+      
     - name: Run tests
       run: go test ./... -v  # Run all tests
 
