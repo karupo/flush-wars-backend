@@ -1,0 +1,21 @@
+# revive.toml
+ignoreGeneratedHeader = false
+severity = "warning"
+
+[rule.blank-imports]
+[rule.context-as-argument]
+[rule.dot-imports]
+[rule.error-strings]
+[rule.error-naming]
+[rule.if-return]
+[rule.increment-decrement]
+[rule.var-naming]
+[rule.exported]
+enabled = false
+[rule.indent-error-flow]
+[rule.unexported-return]
+[rule.empty-lines]
+[rule.unused-parameter]
+[rule.unreachable-code]
+[rule.string-format]
+[rule.modifies-parameter]

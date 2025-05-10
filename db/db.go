@@ -10,8 +10,10 @@ import (
 	"gorm.io/gorm"
 )
 
+// DB is the global database connection pool.
 var DB *gorm.DB
 
+// Init - Connect to DB
 func Init() {
 	err := godotenv.Load()
 	if err != nil {
@@ -39,10 +41,8 @@ func Init() {
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		log.Fatalf("Failed to connect to database %v", err)
-
 	}
 
 	DB = db
 	fmt.Println("Connected to PostgresSQL database")
-
 }
