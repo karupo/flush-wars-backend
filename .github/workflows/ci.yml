@@ -37,7 +37,6 @@ jobs:
     - name: Install revive
       run: go install github.com/mgechev/revive@latest
 
-      # Step 5: Run the Makefile
     - name: Run Makefile
       run: make all
 
