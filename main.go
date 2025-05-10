@@ -18,6 +18,7 @@ func main() {
 	log.Fatal(app.Listen(":3000"))
 }
 
+// InitApp - Initialize the database connection, Initialize a new Fiber app
 func InitApp() *fiber.App {
 	// Initialize the database connection
 	db.Init(true)
