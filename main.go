@@ -4,9 +4,13 @@ import (
 	"log"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/karunapo/flush-wars-backend/db"
+	"github.com/karunapo/flush-wars-backend/models"
 )
 
 func main() {
+	db.Init()
+	db.DB.AutoMigrate(&models.User{}) // Auto-create table
 	// Initialize a new Fiber app
 	app := fiber.New()
 
