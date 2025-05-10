@@ -7,6 +7,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/karunapo/flush-wars-backend/db"
 	"github.com/karunapo/flush-wars-backend/models"
+	"github.com/karunapo/flush-wars-backend/routes"
 )
 
 func main() {
@@ -29,6 +30,7 @@ func InitApp() *fiber.App {
 
 	// Initialize a new Fiber app
 	app := fiber.New()
+	routes.SetupRoutes(app)
 
 	// Define a simple health check route
 	app.Get("/healthz", func(c *fiber.Ctx) error {
