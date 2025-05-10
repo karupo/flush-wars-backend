@@ -11,7 +11,6 @@ severity = "warning"
 [rule.increment-decrement]
 [rule.var-naming]
 [rule.exported]
-enabled = false
 [rule.indent-error-flow]
 [rule.unexported-return]
 [rule.empty-lines]

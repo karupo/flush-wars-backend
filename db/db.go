@@ -13,11 +13,16 @@ import (
 // DB is the global database connection pool.
 var DB *gorm.DB
 
+var openDB = func(dsn string) (*gorm.DB, error) {
+	return gorm.Open(postgres.Open(dsn), &gorm.Config{})
+}
+
 // Init - Connect to DB
-func Init() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
+func Init(loadEnv bool) error {
+	if loadEnv {
+		if err := godotenv.Load(); err != nil {
+			return fmt.Errorf("error loading .env file: %w", err)
+		}
 	}
 
 	// Retrieve environment variables
@@ -27,22 +32,17 @@ func Init() {
 	dbname := os.Getenv("DB_NAME")
 	port := os.Getenv("DB_PORT")
 
-	// Ensure port is set
-	if port == "" {
-		log.Fatal("DB_PORT is not set in .env file")
-	}
-
-	// Build DSN (Data Source Name) for PostgreSQL
 	dsn := fmt.Sprintf(
 		"host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
 		host, user, password, dbname, port,
 	)
 
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	db, err := openDB(dsn)
 	if err != nil {
-		log.Fatalf("Failed to connect to database %v", err)
+		return fmt.Errorf("failed to connect to database: %w", err)
 	}
 
 	DB = db
-	fmt.Println("Connected to PostgresSQL database")
+	log.Println("Connected to PostgreSQL database")
+	return nil
 }

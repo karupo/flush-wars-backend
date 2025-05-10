@@ -9,8 +9,22 @@ import (
 )
 
 func main() {
-	db.Init()
-	db.DB.AutoMigrate(&models.User{}) // Auto-create table
+	// Auto-create table
+	// Initialize a new Fiber app
+	// Define a simple health check route
+	app := InitApp()
+
+	// Start the server on port 3000
+	log.Fatal(app.Listen(":3000"))
+}
+
+func InitApp() *fiber.App {
+	// Initialize the database connection
+	db.Init(true)
+
+	// Auto-migrate the models (creating/updating tables)
+	db.DB.AutoMigrate(&models.User{})
+
 	// Initialize a new Fiber app
 	app := fiber.New()
 
@@ -19,6 +33,5 @@ func main() {
 		return c.SendString("OK")
 	})
 
-	// Start the server on port 3000
-	log.Fatal(app.Listen(":3000"))
+	return app
 }

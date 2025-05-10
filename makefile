@@ -1,19 +1,41 @@
-# Makefile
+# Makefile for Flush Wars Backend
 
-# Define the binary name
-BIN_NAME=flush-wars-backend
+# Define variables
+GO = go
+BIN_NAME = flush-wars-backend
+LINTER = revive
 
-# Go build target
+# Go Build target: build the Go binary
 build:
-	go build -o $(BIN_NAME)
+	$(GO) build -o $(BIN_NAME)
 
-# Run revive linter
+# Test target: run Go tests
+test:
+	$(GO) test -v ./...
+
+# Lint target: run the linter
 lint:
-	revive -config revive.toml ./...
+	$(LINTER) ./...
 
-# Clean up generated files
+# Clean target: remove the compiled binary
 clean:
 	rm -f $(BIN_NAME)
 
-# Default target to build and lint at the same time
-all: build lint
+# Run target: build and run the Go application
+run: build
+	./$(BIN_NAME)
+
+# Install dependencies (optional, depending on how you manage dependencies)
+deps:
+	$(GO) get -v ./...
+
+# Format the code using gofmt
+fmt:
+	$(GO) fmt ./...
+
+# Go mod tidy target: tidy up go.mod and go.sum
+mod-tidy:
+	$(GO) mod tidy
+
+# All target: build, lint, and test
+all: deps build fmt mod-tidy lint test 

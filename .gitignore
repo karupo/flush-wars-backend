@@ -1,0 +1,55 @@
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Output of the go build command
+flush-wars-backend
+
+# Go build artifacts
+/build/
+bin/
+dist/
+
+# Vendor directory (unless you're vendoring dependencies)
+vendor/
+
+# Go workspace files
+go.work
+go.work.sum
+
+# Dependency directories
+Godeps/
+
+# IDE/editor files
+.vscode/
+.idea/
+*.swp
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Coverage files
+*.coverprofile
+coverage.out
+
+# GolangCI-Lint cache
+.golangci.yml
+.golangci.json
+.golangci-lint-report.out
+/tmp/go-build
+/tmp/golangci-lint-cache
+
+# Test cache
+*.test
+
+# GitHub Actions
+.github/workflows/.DS_Store
