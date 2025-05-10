@@ -1,3 +1,4 @@
+// Package main contains the main go code
 package main
 
 import (
