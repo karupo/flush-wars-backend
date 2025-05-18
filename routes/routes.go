@@ -13,4 +13,5 @@ func SetupRoutes(app *fiber.App) {
 	app.Post("/api/poop-log", controllers.CreatePoopLog)
 	app.Get("/api/xp-summary", controllers.GetXPSummary)
 	app.Get("/api/poop-log/history", controllers.GetPoopLogHistory)
+	app.Get("/api/poop-log/achievements", controllers.GetAchievements)
 }

@@ -8,6 +8,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
+	"github.com/karunapo/flush-wars-backend/acheivement"
 	"github.com/karunapo/flush-wars-backend/db"
 	"github.com/karunapo/flush-wars-backend/models"
 	"github.com/karunapo/flush-wars-backend/xp"
@@ -81,9 +82,10 @@ func CreatePoopLog(c *fiber.Ctx) error {
 
 	// Return success response
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
-		"message":   "Poop log successfully created",
-		"xp_gained": poopLog.XPGained,
-		"poop_log":  poopLog,
+		"message":     "Poop log successfully created",
+		"xp_gained":   poopLog.XPGained,
+		"poop_log":    poopLog,
+		"acheivement": acheivement.CheckAndAwardAchievements(userID),
 	})
 }
 
