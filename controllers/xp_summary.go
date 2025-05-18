@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 	"github.com/karunapo/flush-wars-backend/db"
 	"github.com/karunapo/flush-wars-backend/models"
 	"github.com/karunapo/flush-wars-backend/xp"
@@ -12,7 +13,7 @@ import (
 // GetXPSummary for a user with level and milestone
 func GetXPSummary(c *fiber.Ctx) error {
 	// TEMP: Hardcoded user ID
-	userID := "8d970d62-8fdb-4d00-a578-47f4977f14ca"
+	userID, _ := uuid.Parse("8d970d62-8fdb-4d00-a578-47f4977f14ca")
 
 	// Fetch logs
 	var logs []models.PoopLog
@@ -25,8 +26,6 @@ func GetXPSummary(c *fiber.Ctx) error {
 	var lastDay time.Time
 
 	for _, log := range logs {
-		totalXP += log.XPGained
-
 		if lastDay.IsZero() || log.Timestamp.Sub(lastDay).Hours() <= 48 {
 			streak++
 		} else {
@@ -35,11 +34,16 @@ func GetXPSummary(c *fiber.Ctx) error {
 		lastDay = log.Timestamp
 	}
 
-	level := xp.CalculateLevel(totalXP)
+	var user models.User
+	if err := db.DB.First(&user, "id = ?", userID).Error; err != nil {
+		return err
+	}
+
+	level := xp.CalculateLevel(user.XP)
 	milestones := xp.GetMilestones(totalXP, streak)
 
 	return c.JSON(fiber.Map{
-		"total_xp":   totalXP,
+		"total_xp":   user.XP,
 		"level":      level,
 		"streak":     streak,
 		"milestones": milestones,

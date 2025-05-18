@@ -80,12 +80,24 @@ func CreatePoopLog(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Could not store poop log"})
 	}
 
+	var user models.User
+	if err := db.DB.First(&user, "id = ?", userID).Error; err != nil {
+		log.Printf("Error getting user  : %v", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Could not get user users"})
+	}
+	user.XP += xp
+	if err := db.DB.Save(&user).Error; err != nil {
+		log.Printf("Error saving user xp : %v", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Could not store xp in users"})
+	}
+
 	// Return success response
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
 		"message":     "Poop log successfully created",
 		"xp_gained":   poopLog.XPGained,
 		"poop_log":    poopLog,
 		"acheivement": acheivement.CheckAndAwardAchievements(userID),
+		"total_xp":    user.XP,
 	})
 }
 
