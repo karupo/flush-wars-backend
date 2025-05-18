@@ -11,4 +11,6 @@ func SetupRoutes(app *fiber.App) {
 	app.Post("/register", controllers.Register)
 	app.Post("/login", controllers.Login)
 	app.Post("/api/poop-log", controllers.CreatePoopLog)
+	app.Get("/api/xp-summary", controllers.GetXPSummary)
+	app.Get("/api/poop-log/history", controllers.GetPoopLogHistory)
 }

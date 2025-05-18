@@ -2,6 +2,8 @@ package controllers
 
 import (
 	"log"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -82,5 +84,52 @@ func CreatePoopLog(c *fiber.Ctx) error {
 		"message":   "Poop log successfully created",
 		"xp_gained": poopLog.XPGained,
 		"poop_log":  poopLog,
+	})
+}
+
+// GetPoopLogHistory for a user with pagination and filter
+func GetPoopLogHistory(c *fiber.Ctx) error {
+	userID := "8d970d62-8fdb-4d00-a578-47f4977f14ca" // Replace with real user ID from auth later
+	filter := c.Query("filter")
+	page, _ := strconv.Atoi(c.Query("page", "1"))
+	pageSize, _ := strconv.Atoi(c.Query("page_size", "3"))
+	sortOrder := strings.ToLower(c.Query("sort", "desc"))
+
+	if sortOrder != "asc" && sortOrder != "desc" {
+		sortOrder = "desc"
+	}
+
+	offset := (page - 1) * pageSize
+	query := db.DB.Where("user_id = ?", userID)
+
+	switch filter {
+	case "epic":
+		query = query.Where("stool_type = ?", "Normal")
+	case "fail":
+		query = query.Where("stool_type IN ?", []string{"Runny", "Hard", "Soft"})
+	}
+
+	var logs []models.PoopLog
+	if err := query.Order("timestamp " + sortOrder).
+		Limit(pageSize).
+		Offset(offset).
+		Find(&logs).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to retrieve poop logs"})
+	}
+
+	var result []fiber.Map
+	for _, log := range logs {
+		result = append(result, fiber.Map{
+			"date":       log.Timestamp,
+			"stool_type": log.StoolType,
+			"xp_gained":  log.XPGained,
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"page":       page,
+		"page_size":  pageSize,
+		"sort_order": sortOrder,
+		"logs":       result,
 	})
 }
