@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/karunapo/flush-wars-backend/db"
 	"github.com/karunapo/flush-wars-backend/models"
+	"github.com/karunapo/flush-wars-backend/xp"
 )
 
 // CreatePoopLogInput is the structure for the incoming JSON for poop log
@@ -52,13 +53,22 @@ func CreatePoopLog(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Server config error"})
 	}
 
+	previousLog := models.PoopLog{}
+	var lastLogTime *time.Time
+
+	if err := db.DB.Where("user_id = ?", userID).Order("timestamp desc").First(&previousLog).Error; err == nil {
+		lastLogTime = &previousLog.Timestamp
+	}
+
+	xp := xp.CalculateXP(input.StoolType, timestamp, lastLogTime)
+
 	// Create a new PoopLog
 	poopLog := models.PoopLog{
 		UserID:    userID,
 		StoolType: input.StoolType,
 		Timestamp: timestamp,
 		Notes:     input.Notes,
-		XPGained:  10, // Example XP gained logic, can be enhanced
+		XPGained:  xp,
 	}
 
 	// Store poop log in DB

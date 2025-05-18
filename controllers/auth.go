@@ -64,13 +64,13 @@ func Register(c *fiber.Ctx) error {
 	})
 }
 
-// LoginInput
+// LoginInput here
 type LoginInput struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }
 
-// Login
+// Login here
 func Login(c *fiber.Ctx) error {
 	var input LoginInput
 	if err := c.BodyParser(&input); err != nil {
