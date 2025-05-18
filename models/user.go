@@ -18,6 +18,7 @@ type User struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt gorm.DeletedAt `gorm:"index"`
+	XP        int
 }
 
 // BeforeCreate is a GORM hook that generates a UUID before inserting a new record.

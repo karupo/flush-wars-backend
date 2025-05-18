@@ -37,3 +37,21 @@ func createAchievement(userID uuid.UUID, name string, description string) string
 
 	return description
 }
+
+// GetTitle based on rank
+func GetTitle(rank int) string {
+	switch rank {
+	case 0:
+		return "Lord of the Bowels"
+	case 1:
+		return "Duke of Digestion"
+	case 2:
+		return "Knight of the Flush"
+	case 3:
+		return "Guardian of the Gut"
+	case 4:
+		return "Prince of Poop"
+	default:
+		return "Warrior of the Wipe"
+	}
+}
