@@ -21,7 +21,7 @@ type User struct {
 }
 
 // BeforeCreate is a GORM hook that generates a UUID before inserting a new record.
-func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
+func (u *User) BeforeCreate(_ *gorm.DB) (err error) {
 	u.ID = uuid.New()
 	return
 }

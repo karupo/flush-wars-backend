@@ -27,6 +27,7 @@ func InitApp() *fiber.App {
 
 	// Auto-migrate the models (creating/updating tables)
 	db.DB.AutoMigrate(&models.User{})
+	db.DB.AutoMigrate(&models.PoopLog{})
 
 	// Initialize a new Fiber app
 	app := fiber.New()
