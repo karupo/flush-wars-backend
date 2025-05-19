@@ -11,14 +11,15 @@ import (
 
 // User represents a user in the application.
 type User struct {
-	ID        uuid.UUID `gorm:"type:uuid;primaryKey"`
-	Email     string    `gorm:"unique;not null"`
-	Username  string    `gorm:"unique;not null"`
-	Password  string    `gorm:"not null"`
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	DeletedAt gorm.DeletedAt `gorm:"index"`
-	XP        int
+	ID            uuid.UUID `gorm:"type:uuid;primaryKey"`
+	Email         string    `gorm:"unique;not null"`
+	Username      string    `gorm:"unique;not null"`
+	Password      string    `gorm:"not null"`
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
+	DeletedAt     gorm.DeletedAt `gorm:"index"`
+	XP            int
+	CurrentStreak int
 }
 
 // BeforeCreate is a GORM hook that generates a UUID before inserting a new record.

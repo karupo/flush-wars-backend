@@ -14,5 +14,5 @@ type PoopLog struct {
 	Timestamp time.Time `gorm:"not null"`
 	Notes     string    `gorm:"type:text"`
 	XPGained  int       `gorm:"not null"`
-	User      User      `gorm:"foreignKey:ID"`
+	User      User      `gorm:"foreignKey:UserID"`
 }

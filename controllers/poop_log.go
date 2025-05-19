@@ -50,7 +50,7 @@ func CreatePoopLog(c *fiber.Ctx) error {
 	}
 
 	// TEMP: Hardcoded user UUID for development/testing
-	userID, err := uuid.Parse("8d970d62-8fdb-4d00-a578-47f4977f14ca") // Use a real UUID from your users table
+	userID, err := uuid.Parse("2f9f3c05-75b0-4935-9d89-f074715f5c19") // Use a real UUID from your users table
 	if err != nil {
 		log.Printf("Invalid hardcoded user ID: %v", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Server config error"})
@@ -61,6 +61,31 @@ func CreatePoopLog(c *fiber.Ctx) error {
 
 	if err := db.DB.Where("user_id = ?", userID).Order("timestamp desc").First(&previousLog).Error; err == nil {
 		lastLogTime = &previousLog.Timestamp
+	}
+
+	var user models.User
+	if err := db.DB.First(&user, "id = ?", userID).Error; err != nil {
+		log.Printf("Error getting user  : %v", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Could not get user users"})
+	}
+
+	// Update streak
+	if lastLogTime != nil {
+		hoursSinceLast := timestamp.Sub(*lastLogTime).Hours()
+		log.Printf("%v", hoursSinceLast)
+		if hoursSinceLast >= 24 && hoursSinceLast <= 48 {
+			// Log is on the next day (within 48h), increment streak
+			user.CurrentStreak++
+		} else if hoursSinceLast < 24 {
+			// Same day or very close, don't increment streak
+			// Optional: no change
+		} else {
+			// More than 2 days gap, reset streak
+			user.CurrentStreak = 1
+		}
+	} else {
+		// First log, start the streak
+		user.CurrentStreak = 1
 	}
 
 	xp := xp.CalculateXP(input.StoolType, timestamp, lastLogTime)
@@ -80,11 +105,6 @@ func CreatePoopLog(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Could not store poop log"})
 	}
 
-	var user models.User
-	if err := db.DB.First(&user, "id = ?", userID).Error; err != nil {
-		log.Printf("Error getting user  : %v", err)
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Could not get user users"})
-	}
 	user.XP += xp
 	if err := db.DB.Save(&user).Error; err != nil {
 		log.Printf("Error saving user xp : %v", err)
@@ -103,7 +123,7 @@ func CreatePoopLog(c *fiber.Ctx) error {
 
 // GetPoopLogHistory for a user with pagination and filter
 func GetPoopLogHistory(c *fiber.Ctx) error {
-	userID := "8d970d62-8fdb-4d00-a578-47f4977f14ca" // Replace with real user ID from auth later
+	userID, _ := uuid.Parse("2f9f3c05-75b0-4935-9d89-f074715f5c19") // Replace with real user ID from auth later
 	filter := c.Query("filter")
 	page, _ := strconv.Atoi(c.Query("page", "1"))
 	pageSize, _ := strconv.Atoi(c.Query("page_size", "3"))
@@ -132,11 +152,12 @@ func GetPoopLogHistory(c *fiber.Ctx) error {
 	}
 
 	var result []fiber.Map
-	for _, log := range logs {
+	for _, poopLog := range logs {
+		log.Printf("logs: %v", logs)
 		result = append(result, fiber.Map{
-			"date":       log.Timestamp,
-			"stool_type": log.StoolType,
-			"xp_gained":  log.XPGained,
+			"date":       poopLog.Timestamp,
+			"stool_type": poopLog.StoolType,
+			"xp_gained":  poopLog.XPGained,
 		})
 	}
 

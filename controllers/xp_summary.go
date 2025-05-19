@@ -13,7 +13,7 @@ import (
 // GetXPSummary for a user with level and milestone
 func GetXPSummary(c *fiber.Ctx) error {
 	// TEMP: Hardcoded user ID
-	userID, _ := uuid.Parse("8d970d62-8fdb-4d00-a578-47f4977f14ca")
+	userID, _ := uuid.Parse("2f9f3c05-75b0-4935-9d89-f074715f5c19")
 
 	// Fetch logs
 	var logs []models.PoopLog
