@@ -8,130 +8,139 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
-	"github.com/karunapo/flush-wars-backend/acheivement"
+	"github.com/karunapo/flush-wars-backend/achievement"
 	"github.com/karunapo/flush-wars-backend/db"
 	"github.com/karunapo/flush-wars-backend/models"
 	"github.com/karunapo/flush-wars-backend/xp"
 )
 
-// CreatePoopLogInput is the structure for the incoming JSON for poop log
-type CreatePoopLogInput struct {
+var validStoolTypes = map[string]bool{
+	"Normal": true, "Hard": true, "Runny": true, "Soft": true,
+}
+
+type createPoopLogInput struct {
 	StoolType string `json:"stool_type"`
 	Timestamp string `json:"timestamp"`
 	Notes     string `json:"notes,omitempty"`
 }
 
-// CreatePoopLog handles the creation of a new poop log entry
+// CreatePoopLog creates the logs
 func CreatePoopLog(c *fiber.Ctx) error {
-	// Parse request body
-	var input CreatePoopLogInput
+	log.Println("[CreatePoopLog] Request received")
+
+	var input createPoopLogInput
 	if err := c.BodyParser(&input); err != nil {
-		log.Printf("Failed to parse poop log: %v", err)
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid input"})
+		log.Printf("[CreatePoopLog] Failed to parse body: %v", err)
+		return fiber.NewError(fiber.StatusBadRequest, "Invalid input")
+	}
+	log.Printf("[CreatePoopLog] Parsed input: %+v", input)
+
+	if !validStoolTypes[input.StoolType] {
+		log.Printf("[CreatePoopLog] Invalid stool type: %s", input.StoolType)
+		return fiber.NewError(fiber.StatusBadRequest, "Invalid stool type")
 	}
 
-	// Validate stool type
-	validStoolTypes := []string{"Normal", "Hard", "Runny", "Soft"}
-	isValidType := false
-	for _, v := range validStoolTypes {
-		if input.StoolType == v {
-			isValidType = true
-			break
-		}
-	}
-	if !isValidType {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid stool type"})
-	}
-
-	// Validate timestamp (ensure it's not in the future)
 	timestamp, err := time.Parse(time.RFC3339, input.Timestamp)
 	if err != nil || timestamp.After(time.Now()) {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid timestamp"})
+		log.Printf("[CreatePoopLog] Invalid timestamp: %v", input.Timestamp)
+		return fiber.NewError(fiber.StatusBadRequest, "Invalid timestamp")
 	}
 
-	// TEMP: Hardcoded user UUID for development/testing
-	userID, err := uuid.Parse("2f9f3c05-75b0-4935-9d89-f074715f5c19") // Use a real UUID from your users table
+	userID, err := uuid.Parse("2f9f3c05-75b0-4935-9d89-f074715f5c19") // Replace later
 	if err != nil {
-		log.Printf("Invalid hardcoded user ID: %v", err)
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Server config error"})
+		log.Printf("[CreatePoopLog] Invalid hardcoded user ID: %v", err)
+		return fiber.NewError(fiber.StatusInternalServerError, "Invalid user configuration")
 	}
 
-	previousLog := models.PoopLog{}
+	var lastLog models.PoopLog
 	var lastLogTime *time.Time
-
-	if err := db.DB.Where("user_id = ?", userID).Order("timestamp desc").First(&previousLog).Error; err == nil {
-		lastLogTime = &previousLog.Timestamp
+	if err := db.DB.Where("user_id = ?", userID).Order("timestamp desc").First(&lastLog).Error; err == nil {
+		lastLogTime = &lastLog.Timestamp
+		log.Printf("[CreatePoopLog] Found last poop log at: %v", *lastLogTime)
+	} else {
+		log.Printf("[CreatePoopLog] No previous poop log found")
 	}
 
 	var user models.User
 	if err := db.DB.First(&user, "id = ?", userID).Error; err != nil {
-		log.Printf("Error getting user  : %v", err)
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Could not get user users"})
+		log.Printf("[CreatePoopLog] Failed to fetch user: %v", err)
+		return fiber.NewError(fiber.StatusInternalServerError, "User not found")
 	}
+	log.Printf("[CreatePoopLog] User before streak update: %+v", user)
 
-	// Update streak
-	if lastLogTime != nil {
-		hoursSinceLast := timestamp.Sub(*lastLogTime).Hours()
-		log.Printf("%v", hoursSinceLast)
-		if hoursSinceLast >= 24 && hoursSinceLast <= 48 {
-			// Log is on the next day (within 48h), increment streak
-			user.CurrentStreak++
-		} else if hoursSinceLast < 24 {
-			// Same day or very close, don't increment streak
-			// Optional: no change
-		} else {
-			// More than 2 days gap, reset streak
-			user.CurrentStreak = 1
-		}
-	} else {
-		// First log, start the streak
-		user.CurrentStreak = 1
-	}
+	updateStreak(&user, timestamp, lastLogTime)
+	log.Printf("[CreatePoopLog] User after streak update: %+v", user)
 
-	xp := xp.CalculateXP(input.StoolType, timestamp, lastLogTime)
+	xpGained := xp.CalculateXP(input.StoolType, timestamp, lastLogTime)
+	log.Printf("[CreatePoopLog] XP calculated: %d", xpGained)
 
-	// Create a new PoopLog
-	poopLog := models.PoopLog{
+	newLog := models.PoopLog{
 		UserID:    userID,
 		StoolType: input.StoolType,
 		Timestamp: timestamp,
 		Notes:     input.Notes,
-		XPGained:  xp,
+		XPGained:  xpGained,
 	}
 
-	// Store poop log in DB
-	if err := db.DB.Create(&poopLog).Error; err != nil {
-		log.Printf("Error saving poop log: %v", err)
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Could not store poop log"})
+	if err := db.DB.Create(&newLog).Error; err != nil {
+		log.Printf("[CreatePoopLog] Error saving poop log: %v", err)
+		return fiber.NewError(fiber.StatusInternalServerError, "Could not save poop log")
 	}
+	log.Printf("[CreatePoopLog] Poop log created: %+v", newLog)
 
-	user.XP += xp
+	user.XP += xpGained
 	if err := db.DB.Save(&user).Error; err != nil {
-		log.Printf("Error saving user xp : %v", err)
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Could not store xp in users"})
+		log.Printf("[CreatePoopLog] Failed to save user XP: %v", err)
+		return fiber.NewError(fiber.StatusInternalServerError, "Could not update XP")
 	}
+	log.Printf("[CreatePoopLog] User XP updated: %d", user.XP)
 
-	// Return success response
+	achievementMessage := achievement.CheckAndAwardAchievements(userID)
+	log.Printf("[CreatePoopLog] Achievement check result: %v", achievementMessage)
+
+	log.Println("[CreatePoopLog] Poop log created successfully")
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
 		"message":     "Poop log successfully created",
-		"xp_gained":   poopLog.XPGained,
-		"poop_log":    poopLog,
-		"acheivement": acheivement.CheckAndAwardAchievements(userID),
+		"xp_gained":   xpGained,
+		"poop_log":    newLog,
+		"achievement": achievementMessage,
 		"total_xp":    user.XP,
 	})
 }
 
-// GetPoopLogHistory for a user with pagination and filter
+func updateStreak(user *models.User, newTime time.Time, lastTime *time.Time) {
+	if lastTime == nil {
+		user.CurrentStreak = 1
+		log.Println("[updateStreak] First poop log — starting new streak")
+		return
+	}
+	diff := newTime.Sub(*lastTime).Hours()
+	switch {
+	case diff >= 24 && diff <= 48:
+		user.CurrentStreak++
+		log.Println("[updateStreak] Streak incremented")
+	case diff > 48:
+		user.CurrentStreak = 1
+		log.Println("[updateStreak] Streak reset")
+	default:
+		log.Println("[updateStreak] Same day or close — streak unchanged")
+	}
+}
+
+// GetPoopLogHistory lists history
 func GetPoopLogHistory(c *fiber.Ctx) error {
-	userID, _ := uuid.Parse("2f9f3c05-75b0-4935-9d89-f074715f5c19") // Replace with real user ID from auth later
+	log.Println("[GetPoopLogHistory] Request received")
+
+	userID, _ := uuid.Parse("2f9f3c05-75b0-4935-9d89-f074715f5c19") // Replace later
 	filter := c.Query("filter")
 	page, _ := strconv.Atoi(c.Query("page", "1"))
 	pageSize, _ := strconv.Atoi(c.Query("page_size", "3"))
 	sortOrder := strings.ToLower(c.Query("sort", "desc"))
-
-	if sortOrder != "asc" && sortOrder != "desc" {
+	if sortOrder != "asc" {
 		sortOrder = "desc"
 	}
+
+	log.Printf("[GetPoopLogHistory] Query params: filter=%s, page=%d, page_size=%d, sort=%s", filter, page, pageSize, sortOrder)
 
 	offset := (page - 1) * pageSize
 	query := db.DB.Where("user_id = ?", userID)
@@ -144,22 +153,20 @@ func GetPoopLogHistory(c *fiber.Ctx) error {
 	}
 
 	var logs []models.PoopLog
-	if err := query.Order("timestamp " + sortOrder).
-		Limit(pageSize).
-		Offset(offset).
-		Find(&logs).Error; err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to retrieve poop logs"})
+	if err := query.Order("timestamp " + sortOrder).Limit(pageSize).Offset(offset).Find(&logs).Error; err != nil {
+		log.Printf("[GetPoopLogHistory] DB error: %v", err)
+		return fiber.NewError(fiber.StatusInternalServerError, "Failed to retrieve poop logs")
 	}
 
-	var result []fiber.Map
-	for _, poopLog := range logs {
-		log.Printf("logs: %v", logs)
-		result = append(result, fiber.Map{
-			"date":       poopLog.Timestamp,
-			"stool_type": poopLog.StoolType,
-			"xp_gained":  poopLog.XPGained,
-		})
+	result := make([]fiber.Map, len(logs))
+	for i, logEntry := range logs {
+		result[i] = fiber.Map{
+			"date":       logEntry.Timestamp,
+			"stool_type": logEntry.StoolType,
+			"xp_gained":  logEntry.XPGained,
+		}
 	}
+	log.Printf("[GetPoopLogHistory] Returned %d logs", len(result))
 
 	return c.JSON(fiber.Map{
 		"page":       page,

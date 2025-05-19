@@ -29,15 +29,3 @@ func CalculateXP(stoolType string, timestamp time.Time, previousLogTime *time.Ti
 func CalculateLevel(xp int) int {
 	return xp / 100
 }
-
-// GetMilestones based on xp and streak
-func GetMilestones(xp int, streak int) []string {
-	var milestones []string
-	if streak >= 5 {
-		milestones = append(milestones, "5 Days Streak")
-	}
-	if xp >= 100 {
-		milestones = append(milestones, "Level 2")
-	}
-	return milestones
-}

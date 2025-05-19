@@ -2,7 +2,7 @@ package controllers
 
 import (
 	"github.com/gofiber/fiber/v2"
-	"github.com/karunapo/flush-wars-backend/acheivement"
+	"github.com/karunapo/flush-wars-backend/achievement"
 	"github.com/karunapo/flush-wars-backend/db"
 	"github.com/karunapo/flush-wars-backend/models"
 )
@@ -29,7 +29,7 @@ func GetLeaderboard(c *fiber.Ctx) error {
 		entries = append(entries, LeaderboardEntry{
 			Username: user.Username,
 			XP:       user.XP,
-			Title:    acheivement.GetTitle(i), // Assign anime-inspired title
+			Title:    achievement.GetTitle(i), // Assign anime-inspired title
 			Rank:     i + 1,
 		})
 	}

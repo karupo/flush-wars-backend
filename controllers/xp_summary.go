@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"log"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -10,42 +11,58 @@ import (
 	"github.com/karunapo/flush-wars-backend/xp"
 )
 
-// GetXPSummary for a user with level and milestone
+// GetXPSummary returns the user's XP, level, streak, and milestones
 func GetXPSummary(c *fiber.Ctx) error {
-	// TEMP: Hardcoded user ID
-	userID, _ := uuid.Parse("2f9f3c05-75b0-4935-9d89-f074715f5c19")
+	log.Println("[GetXPSummary] Start")
 
-	// Fetch logs
+	// TEMP: Replace with real user ID from auth
+	userID, err := uuid.Parse("2f9f3c05-75b0-4935-9d89-f074715f5c19")
+	if err != nil {
+		log.Printf("[GetXPSummary] Invalid user ID: %v", err)
+		return fiber.NewError(fiber.StatusInternalServerError, "Invalid user ID")
+	}
+
+	// Fetch poop logs sorted by date
 	var logs []models.PoopLog
 	if err := db.DB.Where("user_id = ?", userID).Order("timestamp asc").Find(&logs).Error; err != nil {
+		log.Printf("[GetXPSummary] Failed to fetch logs: %v", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to fetch logs"})
 	}
 
-	var totalXP int
 	var streak int
-	var lastDay time.Time
+	var lastLogTime time.Time
 
-	for _, log := range logs {
-		if lastDay.IsZero() || log.Timestamp.Sub(lastDay).Hours() <= 48 {
-			streak++
+	for _, logEntry := range logs {
+		if lastLogTime.IsZero() {
+			streak = 1
 		} else {
-			streak = 1 // reset
+			diff := logEntry.Timestamp.Sub(lastLogTime).Hours()
+
+			switch {
+			case diff >= 24 && diff <= 48:
+				streak++
+			case diff > 48:
+				streak = 1
+				// diff < 24 → same day: streak unchanged
+			}
 		}
-		lastDay = log.Timestamp
+		lastLogTime = logEntry.Timestamp
 	}
 
+	// Fetch user record
 	var user models.User
 	if err := db.DB.First(&user, "id = ?", userID).Error; err != nil {
-		return err
+		log.Printf("[GetXPSummary] Failed to fetch user: %v", err)
+		return fiber.NewError(fiber.StatusInternalServerError, "Failed to fetch user")
 	}
 
 	level := xp.CalculateLevel(user.XP)
-	milestones := xp.GetMilestones(totalXP, streak)
+
+	log.Printf("[GetXPSummary] XP: %d | Level: %d | Streak: %d", user.XP, level, streak)
 
 	return c.JSON(fiber.Map{
-		"total_xp":   user.XP,
-		"level":      level,
-		"streak":     streak,
-		"milestones": milestones,
+		"total_xp": user.XP,
+		"level":    level,
+		"streak":   streak,
 	})
 }
