@@ -10,9 +10,20 @@ func SetupRoutes(app *fiber.App) {
 	// Public route for user registration.
 	app.Post("/register", controllers.Register)
 	app.Post("/login", controllers.Login)
-	app.Post("/api/poop-log", controllers.CreatePoopLog)
+
+	poop := app.Group("/api/poop-log")
+
+	poop.Post("/", controllers.CreatePoopLog)
+	poop.Get("/history", controllers.GetPoopLogHistory)
+	poop.Get("/:id", controllers.GetPoopLogByID)
+	poop.Put("/:id", controllers.UpdatePoopLogByID)
+	poop.Delete("/:id", controllers.DeletePoopLogByID)
+
 	app.Get("/api/xp-summary", controllers.GetXPSummary)
-	app.Get("/api/poop-log/history", controllers.GetPoopLogHistory)
 	app.Get("/api/achievements", controllers.GetAchievements)
 	app.Get("/api/leaderboard", controllers.GetLeaderboard)
+
+	user := app.Group("/api/user")
+	user.Get("/profile", controllers.GetUserProfile)
+	user.Put("/profile", controllers.UpdateUserProfile)
 }

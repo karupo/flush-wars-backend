@@ -175,3 +175,108 @@ func GetPoopLogHistory(c *fiber.Ctx) error {
 		"logs":       result,
 	})
 }
+
+func GetPoopLogByID(c *fiber.Ctx) error {
+	log.Println("[GetPoopLogByID] Request received")
+
+	logID := c.Params("id")
+	log.Printf("[GetPoopLogByID] ID: %s", logID)
+
+	poopLogID, err := uuid.Parse(logID)
+	if err != nil {
+		log.Printf("[GetPoopLogByID] Invalid UUID: %v", err)
+		return fiber.NewError(fiber.StatusBadRequest, "Invalid poop log ID")
+	}
+
+	var logEntry models.PoopLog
+	if err := db.DB.First(&logEntry, "id = ?", poopLogID).Error; err != nil {
+		log.Printf("[GetPoopLogByID] Poop log not found: %v", err)
+		return fiber.NewError(fiber.StatusNotFound, "Poop log not found")
+	}
+
+	log.Printf("[GetPoopLogByID] Returning log: %+v", logEntry)
+
+	return c.JSON(fiber.Map{
+		"id":         logEntry.ID,
+		"timestamp":  logEntry.Timestamp,
+		"stool_type": logEntry.StoolType,
+		"xp_gained":  logEntry.XPGained,
+	})
+}
+
+func UpdatePoopLogByID(c *fiber.Ctx) error {
+	log.Println("[UpdatePoopLogByID] Request received")
+
+	logID := c.Params("id")
+	log.Printf("[UpdatePoopLogByID] ID: %s", logID)
+
+	poopLogID, err := uuid.Parse(logID)
+	if err != nil {
+		log.Printf("[UpdatePoopLogByID] Invalid UUID: %v", err)
+		return fiber.NewError(fiber.StatusBadRequest, "Invalid poop log ID")
+	}
+
+	type UpdatePoopLogInput struct {
+		StoolType string `json:"stool_type"`
+	}
+
+	var input UpdatePoopLogInput
+	if err := c.BodyParser(&input); err != nil {
+		log.Printf("[UpdatePoopLogByID] Failed to parse input: %v", err)
+		return fiber.NewError(fiber.StatusBadRequest, "Invalid input")
+	}
+
+	log.Printf("[UpdatePoopLogByID] New stool type: %s", input.StoolType)
+
+	var logEntry models.PoopLog
+	if err := db.DB.First(&logEntry, "id = ?", poopLogID).Error; err != nil {
+		log.Printf("[UpdatePoopLogByID] Log not found: %v", err)
+		return fiber.NewError(fiber.StatusNotFound, "Poop log not found")
+	}
+
+	logEntry.StoolType = input.StoolType
+	// TODO: Recalculate XP if applicable
+
+	if err := db.DB.Save(&logEntry).Error; err != nil {
+		log.Printf("[UpdatePoopLogByID] Failed to save changes: %v", err)
+		return fiber.NewError(fiber.StatusInternalServerError, "Failed to update poop log")
+	}
+
+	log.Printf("[UpdatePoopLogByID] Updated log: %+v", logEntry)
+
+	return c.JSON(fiber.Map{
+		"message": "Poop log updated successfully",
+		"log":     logEntry,
+	})
+}
+
+func DeletePoopLogByID(c *fiber.Ctx) error {
+	log.Println("[DeletePoopLogByID] Request received")
+
+	logID := c.Params("id")
+	log.Printf("[DeletePoopLogByID] ID: %s", logID)
+
+	poopLogID, err := uuid.Parse(logID)
+	if err != nil {
+		log.Printf("[DeletePoopLogByID] Invalid UUID: %v", err)
+		return fiber.NewError(fiber.StatusBadRequest, "Invalid poop log ID")
+	}
+
+	var logEntry models.PoopLog
+	if err := db.DB.First(&logEntry, "id = ?", poopLogID).Error; err != nil {
+		log.Printf("[DeletePoopLogByID] Log not found: %v", err)
+		return fiber.NewError(fiber.StatusNotFound, "Poop log not found")
+	}
+
+	if err := db.DB.Delete(&logEntry).Error; err != nil {
+		log.Printf("[DeletePoopLogByID] Failed to delete: %v", err)
+		return fiber.NewError(fiber.StatusInternalServerError, "Failed to delete poop log")
+	}
+
+	log.Printf("[DeletePoopLogByID] Deleted log ID: %s", poopLogID)
+
+	return c.JSON(fiber.Map{
+		"message": "Poop log deleted successfully",
+		"log_id":  poopLogID,
+	})
+}
