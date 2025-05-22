@@ -8,7 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/karunapo/flush-wars-backend/db"
 	"github.com/karunapo/flush-wars-backend/models"
-	"github.com/karunapo/flush-wars-backend/xp"
+	"github.com/karunapo/flush-wars-backend/services/xp"
 )
 
 // GetXPSummary returns the user's XP, level, streak, and milestones

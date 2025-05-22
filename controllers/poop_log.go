@@ -8,10 +8,10 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
-	"github.com/karunapo/flush-wars-backend/achievement"
 	"github.com/karunapo/flush-wars-backend/db"
 	"github.com/karunapo/flush-wars-backend/models"
-	"github.com/karunapo/flush-wars-backend/xp"
+	"github.com/karunapo/flush-wars-backend/services/achievement"
+	"github.com/karunapo/flush-wars-backend/services/xp"
 )
 
 var validStoolTypes = map[string]bool{

@@ -2,9 +2,9 @@ package controllers
 
 import (
 	"github.com/gofiber/fiber/v2"
-	"github.com/karunapo/flush-wars-backend/achievement"
 	"github.com/karunapo/flush-wars-backend/db"
 	"github.com/karunapo/flush-wars-backend/models"
+	"github.com/karunapo/flush-wars-backend/services/achievement"
 )
 
 // LeaderboardEntry to display the leaderboard
