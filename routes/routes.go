@@ -19,11 +19,13 @@ func SetupRoutes(app *fiber.App) {
 	poop.Put("/:id", controllers.UpdatePoopLogByID)
 	poop.Delete("/:id", controllers.DeletePoopLogByID)
 
-	app.Get("/api/xp-summary", controllers.GetXPSummary)
 	app.Get("/api/achievements", controllers.GetAchievements)
 	app.Get("/api/leaderboard", controllers.GetLeaderboard)
 
 	user := app.Group("/api/user")
 	user.Get("/profile", controllers.GetUserProfile)
 	user.Put("/profile", controllers.UpdateUserProfile)
+	user.Get("/xp-summary", controllers.GetXPSummary)
+	user.Get("/level", controllers.GetUserLevel)
+	user.Get("/level-progress", controllers.GetLevelProgress)
 }

@@ -66,3 +66,62 @@ func GetXPSummary(c *fiber.Ctx) error {
 		"streak":   streak,
 	})
 }
+
+func GetUserLevel(c *fiber.Ctx) error {
+	log.Println("[GetUserLevel] Start")
+
+	// TEMP: Replace with real user ID from auth
+	userID, err := uuid.Parse("2f9f3c05-75b0-4935-9d89-f074715f5c19")
+	if err != nil {
+		log.Printf("[GetUserLevel] Invalid user ID: %v", err)
+		return fiber.NewError(fiber.StatusInternalServerError, "Invalid user ID")
+	}
+
+	// Fetch user
+	var user models.User
+	if err := db.DB.First(&user, "id = ?", userID).Error; err != nil {
+		log.Printf("[GetUserLevel] Failed to fetch user: %v", err)
+		return fiber.NewError(fiber.StatusInternalServerError, "Failed to fetch user")
+	}
+
+	level := xp.CalculateLevel(user.XP)
+
+	log.Printf("[GetUserLevel] XP: %d | Level: %d", user.XP, level)
+
+	return c.JSON(fiber.Map{
+		"level": level,
+	})
+}
+
+func GetLevelProgress(c *fiber.Ctx) error {
+	log.Println("[GetLevelProgress] Start")
+
+	// TEMP: Replace with real user ID from auth
+	userID, err := uuid.Parse("2f9f3c05-75b0-4935-9d89-f074715f5c19")
+	if err != nil {
+		log.Printf("[GetLevelProgress] Invalid user ID: %v", err)
+		return fiber.NewError(fiber.StatusInternalServerError, "Invalid user ID")
+	}
+
+	var user models.User
+	if err := db.DB.First(&user, "id = ?", userID).Error; err != nil {
+		log.Printf("[GetLevelProgress] Failed to fetch user: %v", err)
+		return fiber.NewError(fiber.StatusInternalServerError, "Failed to fetch user")
+	}
+
+	currentXP := user.XP
+	level := xp.CalculateLevel(currentXP)
+	currentLevelXP := xp.XPForLevel(level)
+	nextLevelXP := xp.XPForLevel(level + 1)
+	xpToNext := nextLevelXP - currentXP
+
+	log.Printf("[GetLevelProgress] XP: %d | Level: %d | XP → Next: %d", currentXP, level, xpToNext)
+
+	return c.JSON(fiber.Map{
+		"total_xp":         currentXP,
+		"level":            level,
+		"current_level_xp": currentLevelXP,
+		"next_level_xp":    nextLevelXP,
+		"xp_to_next_level": xpToNext,
+	})
+}

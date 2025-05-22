@@ -29,3 +29,8 @@ func CalculateXP(stoolType string, timestamp time.Time, previousLogTime *time.Ti
 func CalculateLevel(xp int) int {
 	return xp / 100
 }
+
+func XPForLevel(level int) int {
+	// Simple formula example: XP = 100 * level
+	return 100 * level
+}
