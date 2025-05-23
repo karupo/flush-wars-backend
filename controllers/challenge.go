@@ -10,6 +10,7 @@ import (
 	"github.com/karunapo/flush-wars-backend/models"
 )
 
+// ChallengeResponse represents challenge data returned to the client.
 type ChallengeResponse struct {
 	ID          uuid.UUID `json:"id"`
 	Title       string    `json:"title"`
@@ -19,6 +20,7 @@ type ChallengeResponse struct {
 	RewardXP    int       `json:"reward_xp"`
 }
 
+// GetAllChallenges lists all available challenges.
 func GetAllChallenges(c *fiber.Ctx) error {
 	log.Println("[GetAllChallenges] Request received")
 	var challenges []models.Challenge
@@ -30,6 +32,7 @@ func GetAllChallenges(c *fiber.Ctx) error {
 	return c.JSON(challenges)
 }
 
+// JoinChallenge allows a user to join a challenge by ID.
 func JoinChallenge(c *fiber.Ctx) error {
 	log.Println("[JoinChallenge] Request received")
 	challengeID := c.Params("id")
@@ -62,6 +65,7 @@ func JoinChallenge(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"message": "Challenge joined"})
 }
 
+// GetUserChallenges lists challenges the authenticated user has joined.
 func GetUserChallenges(c *fiber.Ctx) error {
 	log.Println("[GetUserChallenges] Request received")
 	userIDVal := c.Locals("userID")
@@ -79,6 +83,7 @@ func GetUserChallenges(c *fiber.Ctx) error {
 	return c.JSON(userChallenges)
 }
 
+// GetChallengeProgress returns progress for a specific user challenge.
 func GetChallengeProgress(c *fiber.Ctx) error {
 	log.Println("[GetChallengeProgress] Request received")
 	challengeID := c.Params("id")
@@ -97,6 +102,7 @@ func GetChallengeProgress(c *fiber.Ctx) error {
 	return c.JSON(progress)
 }
 
+// CompleteChallenge marks a challenge as completed for the user.
 func CompleteChallenge(c *fiber.Ctx) error {
 	log.Println("[CompleteChallenge] Request received")
 	challengeID := c.Params("id")

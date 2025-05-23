@@ -66,6 +66,7 @@ func GetXPSummary(c *fiber.Ctx) error {
 	})
 }
 
+// GetUserLevel returns the user's current level based on XP.
 func GetUserLevel(c *fiber.Ctx) error {
 	log.Println("[GetUserLevel] Start")
 
@@ -91,6 +92,7 @@ func GetUserLevel(c *fiber.Ctx) error {
 	})
 }
 
+// GetLevelProgress returns XP progress within the current level.
 func GetLevelProgress(c *fiber.Ctx) error {
 	log.Println("[GetLevelProgress] Start")
 
@@ -108,8 +110,8 @@ func GetLevelProgress(c *fiber.Ctx) error {
 
 	currentXP := user.XP
 	level := xp.CalculateLevel(currentXP)
-	currentLevelXP := xp.XPForLevel(level)
-	nextLevelXP := xp.XPForLevel(level + 1)
+	currentLevelXP := xp.ForLevel(level)
+	nextLevelXP := xp.ForLevel(level + 1)
 	xpToNext := nextLevelXP - currentXP
 
 	log.Printf("[GetLevelProgress] XP: %d | Level: %d | XP → Next: %d", currentXP, level, xpToNext)

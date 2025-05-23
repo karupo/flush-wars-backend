@@ -40,6 +40,7 @@ func GetLeaderboard(c *fiber.Ctx) error {
 	return c.JSON(entries)
 }
 
+// WeeklyLeaderboardEntry represents a leaderboard entry for a user in a given week.
 type WeeklyLeaderboardEntry struct {
 	UserID   uuid.UUID `json:"-"`
 	Username string    `json:"username"`
@@ -48,6 +49,7 @@ type WeeklyLeaderboardEntry struct {
 	Rank     int       `json:"rank"`
 }
 
+// GetWeeklyLeaderboard returns the top users based on XP for the current week.
 func GetWeeklyLeaderboard(c *fiber.Ctx) error {
 	type Result struct {
 		UserID uuid.UUID

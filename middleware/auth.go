@@ -10,7 +10,7 @@ import (
 	"github.com/google/uuid"
 )
 
-
+// RequireAuth validates JWT from the Authorization header and sets user ID in context.
 func RequireAuth(c *fiber.Ctx) error {
 	log.Printf("[RequireAuth] JWT_SECRET: %s", os.Getenv("JWT_SECRET"))
 
@@ -25,7 +25,7 @@ func RequireAuth(c *fiber.Ctx) error {
 	tokenStr := strings.TrimPrefix(authHeader, "Bearer ")
 	log.Printf("[RequireAuth] Token string: %s", tokenStr)
 
-	token, err := jwt.Parse(tokenStr, func(t *jwt.Token) (interface{}, error) {
+	token, err := jwt.Parse(tokenStr, func(_ *jwt.Token) (interface{}, error) {
 		return []byte(os.Getenv("JWT_SECRET")), nil
 	})
 

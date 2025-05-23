@@ -7,6 +7,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// Challenge defines a goal-based task with a specific type, value, and active time range.
 type Challenge struct {
 	ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 	Name        string         `json:"name"`

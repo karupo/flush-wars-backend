@@ -7,6 +7,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// UserChallenge links a user to a challenge and tracks their progress and completion status.
 type UserChallenge struct {
 	ID          uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 	UserID      uuid.UUID      `gorm:"type:uuid;index" json:"user_id"`

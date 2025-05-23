@@ -30,7 +30,7 @@ func CalculateLevel(xp int) int {
 	return xp / 100
 }
 
-func XPForLevel(level int) int {
-	// Simple formula example: XP = 100 * level
+// XPForLevel Simple formula example: XP = 100 * level
+func ForLevel(level int) int {
 	return 100 * level
 }

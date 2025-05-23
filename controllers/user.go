@@ -10,11 +10,13 @@ import (
 	"github.com/karunapo/flush-wars-backend/models"
 )
 
+// UserProfile contains basic user information for the profile view.
 type UserProfile struct {
 	UserName string `json:"username"`
 	Email    string `json:"email"`
 }
 
+// GetUserProfile returns the authenticated user's profile data.
 func GetUserProfile(c *fiber.Ctx) error {
 	userIDVal := c.Locals("userID")
 	userID, ok := userIDVal.(uuid.UUID)
@@ -81,6 +83,7 @@ func UpdateUserProfile(c *fiber.Ctx) error {
 	})
 }
 
+// GetUserStreak returns the current streak of the authenticated user.
 func GetUserStreak(c *fiber.Ctx) error {
 	userIDVal := c.Locals("userID")
 	userID, ok := userIDVal.(uuid.UUID)

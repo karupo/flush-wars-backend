@@ -10,6 +10,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// SeedChallenges inserts sample challenges into the database if they do not already exist.
 func SeedChallenges() {
 	sampleChallenges := []models.Challenge{
 		{
@@ -70,5 +71,4 @@ func SeedChallenges() {
 			log.Printf("[SeedChallenges] Challenge inserted: %s", challenge.Name)
 		}
 	}
-
 }

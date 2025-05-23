@@ -188,6 +188,7 @@ func GetPoopLogHistory(c *fiber.Ctx) error {
 	})
 }
 
+// GetPoopLogByID returns a specific poop log by ID.
 func GetPoopLogByID(c *fiber.Ctx) error {
 	log.Println("[GetPoopLogByID] Request received")
 
@@ -222,6 +223,7 @@ func GetPoopLogByID(c *fiber.Ctx) error {
 	})
 }
 
+// UpdatePoopLogByID updates a specific poop log by ID.
 func UpdatePoopLogByID(c *fiber.Ctx) error {
 	log.Println("[UpdatePoopLogByID] Request received")
 
@@ -268,6 +270,7 @@ func UpdatePoopLogByID(c *fiber.Ctx) error {
 	})
 }
 
+// DeletePoopLogByID deletes a specific poop log by ID.
 func DeletePoopLogByID(c *fiber.Ctx) error {
 	log.Println("[DeletePoopLogByID] Request received")
 

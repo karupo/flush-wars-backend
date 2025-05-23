@@ -10,6 +10,7 @@ import (
 	"github.com/karunapo/flush-wars-backend/models"
 )
 
+// AnalyticsResponse holds summary statistics for the analytics endpoint.
 type AnalyticsResponse struct {
 	TotalLogs   int               `json:"total_logs"`
 	TotalXP     int               `json:"total_xp"`
@@ -17,27 +18,32 @@ type AnalyticsResponse struct {
 	Trend       []DailyTrendEntry `json:"trend,omitempty"` // Only for trends
 }
 
+// DailyTrendEntry represents a single entry in a trend graph.
 type DailyTrendEntry struct {
 	Date     string `json:"date"`
 	LogCount int    `json:"log_count"`
 	XP       int    `json:"xp"`
 }
 
+// GetAnalyticsWeekly returns weekly poop log trends for the user.
 func GetAnalyticsWeekly(c *fiber.Ctx) error {
 	log.Println("[Analytics] Weekly analytics requested")
 	return getAnalyticsSince(c, 7)
 }
 
+// GetAnalyticsMonthly returns monthly poop log trends for the user.
 func GetAnalyticsMonthly(c *fiber.Ctx) error {
 	log.Println("[Analytics] Monthly analytics requested")
 	return getAnalyticsSince(c, 30)
 }
 
+// GetAnalyticsYearly returns yearly poop log trends for the user.
 func GetAnalyticsYearly(c *fiber.Ctx) error {
 	log.Println("[Analytics] Yearly analytics requested")
 	return getAnalyticsSince(c, 365)
 }
 
+// GetAnalyticsTrends returns daily trends in poop activity.
 func GetAnalyticsTrends(c *fiber.Ctx) error {
 	log.Println("[Analytics] Trends requested (last 30 days)")
 

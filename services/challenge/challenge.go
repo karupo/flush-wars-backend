@@ -50,6 +50,7 @@ func isChallengeCompleted(user models.User, challenge models.Challenge) bool {
 	}
 }
 
+// CheckForNewlyCompletedChallenge evaluates if a user has just completed a challenge and returns the completed challenge if any.
 func CheckForNewlyCompletedChallenge(user models.User) (string, error) {
 	var challenges []models.Challenge
 	// Get active challenges

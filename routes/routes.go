@@ -47,5 +47,4 @@ func SetupRoutes(app *fiber.App) {
 	challenges.Get("/user", middleware.RequireAuth, controllers.GetUserChallenges)
 	challenges.Get("/:id/progress", middleware.RequireAuth, controllers.GetChallengeProgress)
 	challenges.Post("/:id/complete", middleware.RequireAuth, controllers.CompleteChallenge)
-
 }
