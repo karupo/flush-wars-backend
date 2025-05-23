@@ -29,6 +29,8 @@ func InitApp() *fiber.App {
 	db.DB.AutoMigrate(&models.User{})
 	db.DB.AutoMigrate(&models.PoopLog{})
 	db.DB.AutoMigrate(&models.Achievement{})
+	db.DB.AutoMigrate(&models.Challenge{}, &models.UserChallenge{})
+	db.SeedChallenges()
 
 	// Initialize a new Fiber app
 	app := fiber.New()

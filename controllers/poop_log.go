@@ -11,6 +11,7 @@ import (
 	"github.com/karunapo/flush-wars-backend/db"
 	"github.com/karunapo/flush-wars-backend/models"
 	"github.com/karunapo/flush-wars-backend/services/achievement"
+	"github.com/karunapo/flush-wars-backend/services/challenge"
 	"github.com/karunapo/flush-wars-backend/services/xp"
 )
 
@@ -46,10 +47,10 @@ func CreatePoopLog(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusBadRequest, "Invalid timestamp")
 	}
 
-	userID, err := uuid.Parse("2f9f3c05-75b0-4935-9d89-f074715f5c19") // Replace later
-	if err != nil {
-		log.Printf("[CreatePoopLog] Invalid hardcoded user ID: %v", err)
-		return fiber.NewError(fiber.StatusInternalServerError, "Invalid user configuration")
+	userIDVal := c.Locals("userID")
+	userID, ok := userIDVal.(uuid.UUID)
+	if !ok {
+		log.Println("[CreatePoopLog] Failed to get user ID from context")
 	}
 
 	var lastLog models.PoopLog
@@ -98,6 +99,11 @@ func CreatePoopLog(c *fiber.Ctx) error {
 	achievementMessage := achievement.CheckAndAwardAchievements(userID)
 	log.Printf("[CreatePoopLog] Achievement check result: %v", achievementMessage)
 
+	completedChallengeName, err := challenge.CheckForNewlyCompletedChallenge(user)
+	if err != nil {
+		log.Printf("[CreatePoopLog] Error checking challenge completion: %v", err)
+	}
+
 	log.Println("[CreatePoopLog] Poop log created successfully")
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
 		"message":     "Poop log successfully created",
@@ -105,6 +111,7 @@ func CreatePoopLog(c *fiber.Ctx) error {
 		"poop_log":    newLog,
 		"achievement": achievementMessage,
 		"total_xp":    user.XP,
+		"challenge":   completedChallengeName,
 	})
 }
 
@@ -131,7 +138,12 @@ func updateStreak(user *models.User, newTime time.Time, lastTime *time.Time) {
 func GetPoopLogHistory(c *fiber.Ctx) error {
 	log.Println("[GetPoopLogHistory] Request received")
 
-	userID, _ := uuid.Parse("2f9f3c05-75b0-4935-9d89-f074715f5c19") // Replace later
+	userIDVal := c.Locals("userID")
+	userID, ok := userIDVal.(uuid.UUID)
+	if !ok {
+		log.Println("[GetPoopLogHistory] Failed to get user ID from context")
+	}
+
 	filter := c.Query("filter")
 	page, _ := strconv.Atoi(c.Query("page", "1"))
 	pageSize, _ := strconv.Atoi(c.Query("page_size", "3"))
@@ -182,6 +194,12 @@ func GetPoopLogByID(c *fiber.Ctx) error {
 	logID := c.Params("id")
 	log.Printf("[GetPoopLogByID] ID: %s", logID)
 
+	userIDVal := c.Locals("userID")
+	userID, ok := userIDVal.(uuid.UUID)
+	if !ok {
+		log.Println("[GetPoopLogHistory] Failed to get user ID from context")
+	}
+
 	poopLogID, err := uuid.Parse(logID)
 	if err != nil {
 		log.Printf("[GetPoopLogByID] Invalid UUID: %v", err)
@@ -189,7 +207,7 @@ func GetPoopLogByID(c *fiber.Ctx) error {
 	}
 
 	var logEntry models.PoopLog
-	if err := db.DB.First(&logEntry, "id = ?", poopLogID).Error; err != nil {
+	if err := db.DB.First(&logEntry, "id = ? and user_id =?", poopLogID, userID).Error; err != nil {
 		log.Printf("[GetPoopLogByID] Poop log not found: %v", err)
 		return fiber.NewError(fiber.StatusNotFound, "Poop log not found")
 	}

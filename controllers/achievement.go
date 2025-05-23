@@ -11,14 +11,11 @@ import (
 
 // GetAchievements lists all achievements for the authenticated user
 func GetAchievements(c *fiber.Ctx) error {
-	// In production, extract userID from JWT/session instead of hardcoding
-	userIDStr := "2f9f3c05-75b0-4935-9d89-f074715f5c19"
-	userID, err := uuid.Parse(userIDStr)
-	if err != nil {
-		log.Printf("Invalid UUID: %v", err)
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Invalid user ID",
-		})
+	userIDVal := c.Locals("userID")
+	userID, ok := userIDVal.(uuid.UUID)
+	if !ok {
+		log.Println("[GetAchievements] Failed to get user ID from context")
+		return fiber.NewError(fiber.StatusUnauthorized, "Unauthorized")
 	}
 
 	var achievements []models.Achievement

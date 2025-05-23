@@ -1,35 +1,65 @@
 package achievement
 
 import (
+	"fmt"
 	"log"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/karunapo/flush-wars-backend/db"
 	"github.com/karunapo/flush-wars-backend/models"
+	"github.com/karunapo/flush-wars-backend/services/xp"
 )
 
 // CheckAndAwardAchievements evaluates user progress and awards new achievements if criteria are met.
 // Returns a message indicating the result.
 func CheckAndAwardAchievements(userID uuid.UUID) string {
+	var messages []string
+
+	// Count poop logs as before
 	var count int64
 	if err := db.DB.Model(&models.PoopLog{}).Where("user_id = ?", userID).Count(&count).Error; err != nil {
 		log.Printf("[Achievement] Failed to count poop logs for user %s: %v", userID, err)
 		return "Error checking achievements"
 	}
 
-	log.Printf("[Achievement] User %s has %d poop logs", userID, count)
-
+	// Poop log milestones (unchanged)
 	switch count {
 	case 1:
-		return awardAchievement(userID, "First Log", "You logged your first poop!")
+		messages = append(messages, awardAchievement(userID, "First Log", "You logged your first poop!"))
 	case 5:
-		return awardAchievement(userID, "Fifth Log", "You logged your fifth poop!")
-	// Future milestones can go here
-	default:
-		log.Printf("[Achievement] No new achievements for user %s", userID)
-		return "No new achievements yet"
+		messages = append(messages, awardAchievement(userID, "Fifth Log", "You logged your fifth poop!"))
 	}
+
+	// Get user and current level
+	var user models.User
+	if err := db.DB.First(&user, "id = ?", userID).Error; err != nil {
+		log.Printf("[Achievement] Failed to fetch user %s: %v", userID, err)
+		return "Error fetching user for level achievements"
+	}
+	level := xp.CalculateLevel(user.XP)
+
+	// Compose achievement name for the level
+	levelAchievementName := fmt.Sprintf("Level %d Reached", level)
+	levelAchievementDesc := fmt.Sprintf("You reached level %d!", level)
+
+	// Award level achievement only if not awarded yet
+	messages = append(messages, awardAchievement(userID, levelAchievementName, levelAchievementDesc))
+
+	// Combine messages and return
+	return combineMessages(messages)
+}
+
+func combineMessages(msgs []string) string {
+	unique := make(map[string]bool)
+	var result []string
+	for _, msg := range msgs {
+		if !unique[msg] {
+			result = append(result, msg)
+			unique[msg] = true
+		}
+	}
+	return fmt.Sprintf("Achievements: %v", result)
 }
 
 // awardAchievement creates a new achievement entry for the user if it does not already exist.

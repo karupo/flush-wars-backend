@@ -15,17 +15,17 @@ type UserProfile struct {
 	Email    string `json:"email"`
 }
 
-// GetUserProfile returns basic user info (username and email)
 func GetUserProfile(c *fiber.Ctx) error {
-	// TODO: Replace hardcoded UUID with authenticated user ID
-	userID, err := uuid.Parse("2f9f3c05-75b0-4935-9d89-f074715f5c19")
-	if err != nil {
-		log.Printf("[GetUserProfile] Invalid hardcoded user ID: %v", err)
-		return fiber.NewError(fiber.StatusInternalServerError, "Invalid user configuration")
+	userIDVal := c.Locals("userID")
+	userID, ok := userIDVal.(uuid.UUID)
+	if !ok {
+		log.Println("[GetUserProfile] Failed to get user ID from context")
+		return fiber.NewError(fiber.StatusUnauthorized, "Unauthorized")
 	}
 
 	var user models.User
 	if err := db.DB.First(&user, "id = ?", userID).Error; err != nil {
+		log.Printf("[GetUserProfile] Could not fetch user %s: %v", userID, err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Could not fetch user profile",
 		})
@@ -41,11 +41,11 @@ func GetUserProfile(c *fiber.Ctx) error {
 
 // UpdateUserProfile allows the user to update their username
 func UpdateUserProfile(c *fiber.Ctx) error {
-	// TODO: Replace hardcoded UUID with authenticated user ID
-	userID, err := uuid.Parse("2f9f3c05-75b0-4935-9d89-f074715f5c19")
-	if err != nil {
-		log.Printf("[UpdateUserProfile] Invalid hardcoded user ID: %v", err)
-		return fiber.NewError(fiber.StatusInternalServerError, "Invalid user configuration")
+	userIDVal := c.Locals("userID")
+	userID, ok := userIDVal.(uuid.UUID)
+	if !ok {
+		log.Println("[UpdateUserProfile] Failed to get user ID from context")
+		return fiber.NewError(fiber.StatusUnauthorized, "Unauthorized")
 	}
 
 	type UpdateUsernameInput struct {
@@ -78,5 +78,27 @@ func UpdateUserProfile(c *fiber.Ctx) error {
 			"username": user.Username,
 			"email":    user.Email,
 		},
+	})
+}
+
+func GetUserStreak(c *fiber.Ctx) error {
+	userIDVal := c.Locals("userID")
+	userID, ok := userIDVal.(uuid.UUID)
+	if !ok {
+		log.Println("[GetUserStreak] Failed to get user ID from context")
+		return fiber.NewError(fiber.StatusUnauthorized, "Unauthorized")
+	}
+
+	var user models.User
+	if err := db.DB.First(&user, "id = ?", userID).Error; err != nil {
+		log.Printf("[GetUserStreak] User not found: %v", err)
+		return fiber.NewError(fiber.StatusNotFound, "User not found")
+	}
+
+	log.Printf("[GetUserStreak] User %s current streak: %d", userID, user.CurrentStreak)
+
+	return c.JSON(fiber.Map{
+		"user_id":        userID,
+		"current_streak": user.CurrentStreak,
 	})
 }

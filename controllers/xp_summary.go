@@ -15,11 +15,10 @@ import (
 func GetXPSummary(c *fiber.Ctx) error {
 	log.Println("[GetXPSummary] Start")
 
-	// TEMP: Replace with real user ID from auth
-	userID, err := uuid.Parse("2f9f3c05-75b0-4935-9d89-f074715f5c19")
-	if err != nil {
-		log.Printf("[GetXPSummary] Invalid user ID: %v", err)
-		return fiber.NewError(fiber.StatusInternalServerError, "Invalid user ID")
+	userIDVal := c.Locals("userID")
+	userID, ok := userIDVal.(uuid.UUID)
+	if !ok {
+		log.Println("[GetXPSummary] Failed to get user ID from context")
 	}
 
 	// Fetch poop logs sorted by date
@@ -70,11 +69,10 @@ func GetXPSummary(c *fiber.Ctx) error {
 func GetUserLevel(c *fiber.Ctx) error {
 	log.Println("[GetUserLevel] Start")
 
-	// TEMP: Replace with real user ID from auth
-	userID, err := uuid.Parse("2f9f3c05-75b0-4935-9d89-f074715f5c19")
-	if err != nil {
-		log.Printf("[GetUserLevel] Invalid user ID: %v", err)
-		return fiber.NewError(fiber.StatusInternalServerError, "Invalid user ID")
+	userIDVal := c.Locals("userID")
+	userID, ok := userIDVal.(uuid.UUID)
+	if !ok {
+		log.Println("[GetUserLevel] Failed to get user ID from context")
 	}
 
 	// Fetch user
@@ -96,11 +94,10 @@ func GetUserLevel(c *fiber.Ctx) error {
 func GetLevelProgress(c *fiber.Ctx) error {
 	log.Println("[GetLevelProgress] Start")
 
-	// TEMP: Replace with real user ID from auth
-	userID, err := uuid.Parse("2f9f3c05-75b0-4935-9d89-f074715f5c19")
-	if err != nil {
-		log.Printf("[GetLevelProgress] Invalid user ID: %v", err)
-		return fiber.NewError(fiber.StatusInternalServerError, "Invalid user ID")
+	userIDVal := c.Locals("userID")
+	userID, ok := userIDVal.(uuid.UUID)
+	if !ok {
+		log.Println("[GetLevelProgress] Failed to get user ID from context")
 	}
 
 	var user models.User
